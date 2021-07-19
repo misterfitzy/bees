@@ -1,0 +1,22 @@
+<html>
+<script src="./anime.min.js"></script>
+<style>
+div {
+  width: 100px;
+  height: 100px;
+  background-color: green;
+}
+</style>
+
+<div></div>
+<script>
+let animation = anime({
+  targets: 'div',
+  translateX: 100,
+  borderRadius: 50,
+  duration: 2000,
+  easing: 'linear',
+  direction: 'alternate'
+}); 
+</script>
+</html>

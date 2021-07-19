@@ -1,0 +1,260 @@
+console.log(1);
+(function() {
+  /**
+   * Check and set a global guard variable.
+   * If this content script is injected into the same page again,
+   * it will do nothing next time.
+   */
+  if (window.hasRun) {
+    return;
+  }
+  window.hasRun = true;
+
+
+  /**
+   * Given a URL to a beast image, remove all existing beasts, then
+   * create and style an IMG node pointing to
+   * that image, then insert the node into the document.
+   */
+  function insertBeast(beastURL) {
+    removeExistingBeasts();
+    let beastImage = document.createElement("img");
+    beastImage.setAttribute("src", beastURL);
+    beastImage.style.height = "100vh";
+    beastImage.className = "beastify-image";
+    document.body.appendChild(beastImage);
+  }
+
+  function testTreeWalker (callback) {
+		var treeWalker = document.createTreeWalker(
+			document.body,
+			NodeFilter.SHOW_TEXT,
+			{ acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } },
+			false
+		);
+
+		var nodeList = [];
+		var currentNode = treeWalker.currentNode;
+
+		while(currentNode) {
+			nodeList.push(currentNode);
+			currentNode = treeWalker.nextNode();
+		}
+
+		callback(nodeList);
+  }
+
+	function stringToDivs (nodeString) {
+		var characters = nodeString.split("");
+		var newNodeString = "";
+
+		var charParticlePrefix = '<div id="particle-bee">';
+		var charParticleSuffix = '</div>';
+
+		for(var i = 0; i < characters.length; i++) {
+			nodeCharacter = characters[i];
+			newNodeCharacterDiv = charParticlePrefix + nodeCharacter + charParticleSuffix;	
+			newNodeString += newNodeCharacterDiv;
+		}
+
+		return newNodeString;
+	}
+
+  /**
+   * Remove every beast from the page.
+   */
+  function removeExistingBeasts() {
+    let existingBeasts = document.querySelectorAll(".beastify-image");
+    for (let beast of existingBeasts) {
+      beast.remove();
+    }
+  }
+
+  /**
+   * Listen for messages from the background script.
+   * Call "beastify()" or "reset()".
+  */
+  browser.runtime.onMessage.addListener((message) => {
+    if (message.command === "beastify") {
+      insertBeast(message.beastURL);
+    } else if (message.command === "reset") {
+      removeExistingBeasts();
+    } else if (message.command === "treewalk") {
+			console.log("Walk the tree...");
+      // testTreeWalker(document.body, a => convertTextInNodeListToDivs(a));
+
+      animateBoxes(tl);
+      // testTreeWalker(convertTextInNodeListToDivs);
+		}
+  });
+
+  select = e => document.querySelector(e);
+  selectAll = e => document.querySelectorAll(e);
+
+  // var spans = selectAll("span");
+  var output_container = select("div.container");
+
+  function testTreeWalker (startPoint, callback) {
+		var treeWalker = document.createTreeWalker(
+			startPoint,
+			NodeFilter.SHOW_TEXT,
+			{ acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } },
+			false
+		);
+
+		var nodeList = [];
+		var currentNode = treeWalker.currentNode;
+
+		while(currentNode) {
+			nodeList.push(currentNode);
+			currentNode = treeWalker.nextNode();
+		}
+
+		callback(nodeList);
+  }
+
+  function stringToDivs (nodeString) {
+		var characters = nodeString.split("");
+		var newNodeString = "";
+
+	    var stringDivs = [];
+	
+		for(var i = 0; i < characters.length; i++) {
+			var newDiv = document.createElement("div");
+			
+			newDiv.setAttribute('class', 'particle');
+			// newDiv.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
+			newDiv.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
+			// debugger;
+			nodeCharacter = characters[i];
+			var newCharNode = document.createTextNode(nodeCharacter);
+			newDiv.append(newCharNode);
+			
+			stringDivs.push(newDiv);
+		}
+
+		return stringDivs;
+	}
+
+  var convertTextInNodeListToDivs = function(nodeList) {
+
+	    // Need to delete this node
+	    // And then create divs and add them to the same place
+		for(var i = 1; i < nodeList.length - 1; i++) {
+			// console.log("len: " + nodeList.length);
+			// console.log(i + ": " + nodeList[i].textContent.trim());
+
+			var trimmedText = nodeList[i].textContent.trim();
+			if (trimmedText.length >= 0) {
+				var stringDivs = stringToDivs(trimmedText);
+				if (nodeList[i].parentElement) {
+					// nodeList[i].parentElement.innerHTML = newNodeString;
+					for(var j = 0; j < stringDivs.length; j++) {
+						nodeList[i].parentElement.appendChild(stringDivs[j]);
+					}
+					nodeList[i].remove();
+					// debugger;
+				}
+			}
+		}
+
+	}
+
+
+  var animateBoxes = function (tl) {
+    debugger;
+    console.log(2);
+    console.log(tl);
+    // gsap.from(".logo", {opacity: 0, duration: 3});
+    // tl.to(".box", {x: 100});
+    // tl.from(".box", {x: 100});
+    var x = document.getElementsByClassName("particle");
+    console.log(x);
+
+    /*
+    var cnt = 0;
+    for(i in x) {
+        cnt++;
+        if(cnt > 10) {
+            break;
+        }
+        x[i].style.color = 'red';
+    } */
+
+    let tit1 = tl.to(".box", {x: 100});
+    let tit2 = tl.from(".box", {x: 100});
+
+    debugger;
+  /*  tl.to(".particle", {
+      duration: 2,
+      scale: "random(0.1, 2)", 
+      opacity: "random(0.3, 1)",
+      x: "random(-300,300)",
+      y: "random(-300,300)",
+      z: "random(-400,400)",
+      rotateX: "random(-360, 360, 180)",
+      rotateY: "random(-360, 360, 180)",
+      repeat:-1, 
+      repeatDelay: 2,
+      repeatRefresh: true,
+      ease: "power2.inOut",
+      stagger: {
+        amount: 1, 
+        grid: [19, 19], 
+        ease: "sine.inOut",
+        from: "center"
+      }
+    }); */
+    // gsap.to('.grid', { duration: 36, rotateX: 2160, rotateY: 720, ease: "none", repeat: -1});
+  }
+
+	// testTreeWalker(document.body, a => convertTextInNodeListToDivs(a));
+	// animateBoxes();
+var tl;
+var bumbum = function () {
+    // DO YOUR STUFF HERE.
+    console.log("bumbum");
+    console.log(gsap);
+    // tl = gsap.timeline({repeat:-1, repeatDelay:0, delay: 1});
+    tl = gsap.timeline();
+    // testTreeWalker(document.body, convertTextInNodeListToDivs);
+	  // animateBoxes(tl);
+    console.log("bumbum close;");
+
+    // Add a button to the DOM
+    /* let animButton = document.createElement("button");
+    animButton.setAttribute("onclick", "bumbum()");
+    animButton.innerHTML = "animate ffs";;
+    document.body.appendChild(animButton); */
+
+    console.log("browser tabs?");
+    console.log(browser.tabs);
+
+}
+console.log("end");
+// window.addEventListener ("load", bumbum, false);
+bumbum();
+console.log("end el");
+
+// add a new element to the DOM
+let p = document.createElement("p");
+p.textContent = "This paragraph was added by a page script.";
+p.setAttribute("id", "page-script-para");
+document.body.appendChild(p);
+
+console.log("asdf - 2");
+// define a new property on the window
+window.foo = "This global variable was added by a page script";
+
+console.log("asdf - 3");
+// redefine the built-in window.confirm() function
+window.confirm = function() {
+  alert("The page script has also redefined 'confirm'");
+}
+
+console.log("asdf");
+
+})();
+
+
+

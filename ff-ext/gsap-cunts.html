@@ -1,0 +1,26 @@
+<html>
+
+<h1>test</h1>
+
+<style>
+.box {
+  width: 200px;
+  height: 200px;
+  background-color: green;
+}
+</style>
+<body>
+<div class="box">casdf</div>
+</body>
+
+
+<script src="./content_scripts/gsap.js"></script>
+<script>
+const tl = gsap.timeline()
+tl.to(".box", {x: 100});
+tl.from(".box", {x: 100});
+</script>
+
+
+</html>
+

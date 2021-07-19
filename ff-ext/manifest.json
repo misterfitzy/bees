@@ -1,0 +1,43 @@
+{
+
+    "manifest_version": 2,
+    "name": "( )o( )",
+    "version": "1.0",
+
+    "description": "Adds a red border to all webpages matching mozilla.org.",
+    "homepage_url": "https://www.google.ie",
+
+    "background": {
+        "page": "background-scripts/communications.html"
+    },
+
+    "icons": {
+        "32": "icons/beasts-32.png",
+        "48": "icons/beasts-48.png"
+    },
+    "permissions": [
+        "activeTab",
+        "notifications"
+    ],
+
+    "browser_action": {
+        "default_icon": "icons/beasts-32.png",
+        "default_title": "Beastify",
+        "default_popup": "popup/choose_beast.html"
+    },
+
+    "content_scripts": [
+        {
+            "matches": [ "<all_urls>" ],
+            "js": [ "content_scripts/anime.min.js"],
+            "run_at": "document_idle"
+        }
+    ],
+
+    "web_accessible_resources": [
+        "beasts/frog.jpg",
+        "beasts/turtle.jpg",
+        "beasts/snake.jpg"
+    ]
+
+}
