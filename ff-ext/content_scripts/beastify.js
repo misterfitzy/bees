@@ -145,45 +145,100 @@ window.addEventListener("click", notifyExtension);
 		callback(nodeList);
   }
 
-  function stringToDivs (nodeString) {
-		var characters = nodeString.split("");
-		var newNodeString = "";
+  function getIndexesOfCharacterIn(nodeString, character) {
+    var charOffset = 0;
+    var indexesOfChar = [];
+    var nextSeek = 0;
+    while(true) {
+      var charOffset = nodeString.indexOf(character, nextSeek);
+      if (charOffset > -1) {
+        indexesOfChar.push(charOffset);
+        nextSeek = charOffset + 1;
+      } 
+      else
+      {
+        break;
+      }
+    }
+    return indexesOfChar;
+  }
 
-	    var stringDivs = [];
-	
-		for(var i = 0; i < characters.length; i++) {
-			var newDiv = document.createElement("div");
-			
-			newDiv.setAttribute('class', 'particle');
-			// newDiv.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
-			newDiv.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
-			// debugger;
-			nodeCharacter = characters[i];
-			var newCharNode = document.createTextNode(nodeCharacter);
-			newDiv.append(newCharNode);
-			
-			stringDivs.push(newDiv);
-		}
 
-		return stringDivs;
+
+  function createParticleDiv (character, particleId) {
+    var newDiv = document.createElement("div");
+    
+    newDiv.setAttribute('class', particleId);
+    // newDiv.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
+    newDiv.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
+    // debugger;
+    nodeCharacter = character;
+    var newCharNode = document.createTextNode(nodeCharacter);
+    newDiv.append(newCharNode);
+
+		return newDiv;
 	}
+
+  // Need a function that slowly converts the page into sprites and slowly evolves the page 
+  // into the playground
+  //
+  // Use Promises so there can be a high level of parallel executions
+  //
+
+  const splitAt = index => x => [x.slice(0, index), x.slice(index + 1)]
 
   var convertTextInNodeListToDivs = function(nodeList) {
 
 	    // Need to delete this node
 	    // And then create divs and add them to the same place
 		for(var i = 1; i < nodeList.length - 1; i++) {
-			// console.log("len: " + nodeList.length);
-			// console.log(i + ": " + nodeList[i].textContent.trim());
+			console.log("len: " + nodeList.length);
+			console.log(i + ": " + nodeList[i].textContent.trim());
 
 			var trimmedText = nodeList[i].textContent.trim();
+      debugger;
 			if (trimmedText.length >= 0) {
         debugger;
-				var stringDivs = stringToDivs(trimmedText);
+				var indexesOfCharacter = getIndexesOfCharacterIn(trimmedText, 'b');
 				if (nodeList[i].parentElement) {
 					// nodeList[i].parentElement.innerHTML = newNodeString;
-					for(var j = 0; j < stringDivs.length; j++) {
-						nodeList[i].parentElement.appendChild(stringDivs[j]);
+          // We now want to split the string at each juncture based on the character
+          // then make it left_str + <div>char</div> + right_str
+          //
+          // Get the parent's tagName
+          // var openingTag = "<" + nodeList[i].parentNode.tagName.toLowerCase() + ">";
+          // var closingTag = "</" + nodeList[i].parentNode.tagName.toLowerCase() + ">";
+          var tagType = nodeList[i].parentNode.tagName.toLowerCase();
+
+					for(var j = 0; j < indexesOfCharacter.length; j++) {
+						// nodeList[i].parentElement.appendChild(stringDivs[j]);
+            var splitString = splitAt(indexesOfCharacter[j])(trimmedText);  
+            var newDiv = createParticleDiv('b', 'particle-bee');
+
+            /*
+            var newDiv = 
+    
+            newDiv.setAttribute('class', particleId);
+            // newDiv.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
+            newDiv.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
+            // debugger;
+            nodeCharacter = character;
+            var newCharNode = document.createTextNode(nodeCharacter);
+            newDiv.append(newCharNode);
+            */
+            var leftElement = document.createElement(tagType);
+            var leftElementText = document.createTextNode(splitString[0]);
+            leftElement.append(leftElementText);
+
+            var rightElement = document.createElement(tagType);
+            var rightElementText = document.createTextNode(splitString[1]);
+            rightElement.append(rightElementText);
+
+            nodeList[i].parentElement.appendChild(leftElement);
+            nodeList[i].parentElement.appendChild(newDiv);
+            nodeList[i].parentElement.appendChild(rightElement);
+            debugger;
+
 					}
 					nodeList[i].remove();
 					// debugger;
@@ -195,7 +250,7 @@ window.addEventListener("click", notifyExtension);
 
 function animateBoxes() {
   let animation = anime({
-     targets: '.particle',    
+     targets: '.particle-bee',    
      translateX: 100,
      borderRadius: 50,
      duration: 2000,
