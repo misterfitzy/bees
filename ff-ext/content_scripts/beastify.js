@@ -46,25 +46,6 @@ window.addEventListener("click", notifyExtension);
     document.body.appendChild(beastImage);
   }
 
-  function testTreeWalker (callback) {
-		var treeWalker = document.createTreeWalker(
-			document.body,
-			NodeFilter.SHOW_TEXT,
-			{ acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } },
-			false
-		);
-
-		var nodeList = [];
-		var currentNode = treeWalker.currentNode;
-
-		while(currentNode) {
-			nodeList.push(currentNode);
-			currentNode = treeWalker.nextNode();
-		}
-
-		callback(nodeList);
-  }
-
 	function stringToDivs (nodeString) {
 		var characters = nodeString.split("");
 		var newNodeString = "";
@@ -103,19 +84,23 @@ window.addEventListener("click", notifyExtension);
     } else if (message.command === "treewalk") {
 			console.log("Walk the tree...");
       testTreeWalker(document.body, a => convertTextInNodeListToDivs(a));
-      animateBoxes();
+      // testTreeWalker(document.body, a => { console.log("Number of elems returned with this filter: " + a.length); });
+      // animateBoxes();
 
+      
 	  ani_promise = animateBoxes();
   
 	  ani_promise.then(() => {
-		console.log("fin anim 2...")
-		animateBoxes().then(() => {
-		  console.log("fin anim 3...")
-		  animateBoxes();
-		});
+      console.log("fin anim 2...")
+      animateBoxes().then(() => {
+        console.log("fin anim 3...")
+        animateBoxes();
+      });
 	  });
+    
       // testTreeWalker(convertTextInNodeListToDivs);
 		}
+    
   });
 
 	/*
@@ -129,15 +114,15 @@ window.addEventListener("click", notifyExtension);
   function testTreeWalker (startPoint, callback) {
 		var treeWalker = document.createTreeWalker(
 			startPoint,
-			NodeFilter.SHOW_TEXT,
-			{ acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } },
-			false
+			NodeFilter.SHOW_ELEMENT,
+			{ acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } }
 		);
 
 		var nodeList = [];
 		var currentNode = treeWalker.currentNode;
 
 		while(currentNode) {
+      console.log(currentNode);
 			nodeList.push(currentNode);
 			currentNode = treeWalker.nextNode();
 		}
@@ -165,18 +150,18 @@ window.addEventListener("click", notifyExtension);
 
 
 
-  function createParticleDiv (character, particleId) {
-    var newDiv = document.createElement("div");
+  function createParticleSpan (character, particleId) {
+    var newSpan = document.createElement("span");
     
-    newDiv.setAttribute('class', particleId);
-    // newDiv.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
-    newDiv.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
+    newSpan.setAttribute('class', particleId);
+    // newSpan.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
+    newSpan.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
     // debugger;
     nodeCharacter = character;
     var newCharNode = document.createTextNode(nodeCharacter);
-    newDiv.append(newCharNode);
+    newSpan.append(newCharNode);
 
-		return newDiv;
+		return newSpan;
 	}
 
   // Need a function that slowly converts the page into sprites and slowly evolves the page 
@@ -191,59 +176,33 @@ window.addEventListener("click", notifyExtension);
 
 	    // Need to delete this node
 	    // And then create divs and add them to the same place
-		for(var i = 1; i < nodeList.length - 1; i++) {
+		for(var i = 1; i < nodeList.length; i++) {
+      console.log("------------------- record start -------------------");
 			console.log("len: " + nodeList.length);
-			console.log(i + ": " + nodeList[i].textContent.trim());
+			// console.log(i + ": " + nodeList[i].textContent.trim());
+  
+      // Process the child nodes
+      for(var j = 0; j < nodeList[i].childNodes.length; j++) {
+        var tagType = nodeList[i].tagName.toLowerCase();
+        if(tagType != "style") {
+          if (nodeList[i].childNodes[j].nodeType === Node.TEXT_NODE) {
+            var newNodes = [];
 
-			var trimmedText = nodeList[i].textContent.trim();
-      debugger;
-			if (trimmedText.length >= 0) {
-        debugger;
-				var indexesOfCharacter = getIndexesOfCharacterIn(trimmedText, 'b');
-				if (nodeList[i].parentElement) {
-					// nodeList[i].parentElement.innerHTML = newNodeString;
-          // We now want to split the string at each juncture based on the character
-          // then make it left_str + <div>char</div> + right_str
-          //
-          // Get the parent's tagName
-          // var openingTag = "<" + nodeList[i].parentNode.tagName.toLowerCase() + ">";
-          // var closingTag = "</" + nodeList[i].parentNode.tagName.toLowerCase() + ">";
-          var tagType = nodeList[i].parentNode.tagName.toLowerCase();
+            var trimmedText = nodeList[i].childNodes[j].textContent.trim();
+            if (trimmedText.length > 0)
+            {
+              console.log(trimmedText);
 
-					for(var j = 0; j < indexesOfCharacter.length; j++) {
-						// nodeList[i].parentElement.appendChild(stringDivs[j]);
-            var splitString = splitAt(indexesOfCharacter[j])(trimmedText);  
-            var newDiv = createParticleDiv('b', 'particle-bee');
-
-            /*
-            var newDiv = 
+              var newSpan = document.createElement("span");
     
-            newDiv.setAttribute('class', particleId);
-            // newDiv.setAttribute('style', 'padding: 0px; background-color: #BCC6CC; display:inline-block; white-space:pre');
-            newDiv.setAttribute('style', 'padding: 0px; display:inline-block; white-space:pre; ');
-            // debugger;
-            nodeCharacter = character;
-            var newCharNode = document.createTextNode(nodeCharacter);
-            newDiv.append(newCharNode);
-            */
-            var leftElement = document.createElement(tagType);
-            var leftElementText = document.createTextNode(splitString[0]);
-            leftElement.append(leftElementText);
+              newSpan.setAttribute('class', 'replaced-text');
+              newSpan.innerHTML = trimmedText.replaceAll("b", "<span style=\"padding: 0px; display:inline-block; white-space:pre;\" class=\"particle-bee\" >b</span>");
 
-            var rightElement = document.createElement(tagType);
-            var rightElementText = document.createTextNode(splitString[1]);
-            rightElement.append(rightElementText);
-
-            nodeList[i].parentElement.appendChild(leftElement);
-            nodeList[i].parentElement.appendChild(newDiv);
-            nodeList[i].parentElement.appendChild(rightElement);
-            debugger;
-
-					}
-					nodeList[i].remove();
-					// debugger;
-				}
-			}
+              nodeList[i].replaceChild(newSpan, nodeList[i].childNodes[j]);
+            }            
+          }
+        }
+      }
 		}
 
 	}
